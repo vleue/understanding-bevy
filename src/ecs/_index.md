@@ -89,23 +89,23 @@ fn main() {
 }
 
 // Because we're modifying the `directory` argument, we need to get the mutable version of it with `ResMut`
-// We find a Resource with the matching type
-// 
+// Bevy's ECS finds a Resource with the matching type
 fn place_denizens(mut directory: ResMut<HashMap::<Name, World>>){
+	// .into() converts our string literal from &str to the required String
 	directory.insert(Name("Alice".into()), World::Venus);
 	directory.insert(Name("Bevy".into()), World::Earth);
 	directory.insert(Name("Cart".into()), World::Mars);
 }
 
-// Commands queues up actions that should be performed to modify the World
-// We only need to read from directory, so we can call it with `Res` instead
+// The special `Commands` resource queues up actions that should be performed to modify the World
+// We only need to read from the directory resource, so we can call it with `Res` instead
 fn spawn_denizens(commands: &mut Commands, directory: Res<HashMap::<Name, World>>){
-
 	// We need to use .clone and .into_iter rather than .iter here 
 	// to satisfy the lifetime requirements of .spawn()
 	for (name, world) in directory.clone().into_iter(){
 		if name == Name("Bevy".into()){
 			// .spawn creates new entities with the specified components
+			// each tuple entry is a different component
 			commands.spawn((name, world));
 		} else {
 			// Only Alice and Cart are Denizens, so Bevy will be excluded from our query filter in `say_hello`
@@ -114,10 +114,9 @@ fn spawn_denizens(commands: &mut Commands, directory: Res<HashMap::<Name, World>
 	}
 }
 
-// Queries extract the each entity that have all of the components specified in the first type argument
+// Queries extract each entity that have all of the components specified in their first type argument
 // The second type argument is a query filter, which restricts which entities are actually provided 
 fn say_hello(query: Query<(&Name, &World), With<Denizen>>, mut timer: ResMut<HelloTimer>, time: Res<Time>){
-	
 	// Only run this system when the timer has elapsed
 	if timer.0.tick(time.delta_seconds()).just_finished(){
 		// Iterating over and then unpacking the query gives us access to the components for each of its entities
