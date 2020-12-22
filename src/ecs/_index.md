@@ -21,13 +21,13 @@ To get started, [Install Rust](https://www.rust-lang.org/tools/install), then se
 The boilerplate needed to make your own app is simple:
 
 ```rust
-{{#include _index_code/src/boilerplate.rs}}
+{{#include _index_code/examples/boilerplate.rs}}
 ```
 
 If you're looking for some useful functionality out of the box (windowing, graphics, input, a scheduler that automatically loops etc.), you'll want to add [`DefaultPlugins`](https://docs.rs/bevy/0.4.0/bevy/struct.DefaultPlugins.html) as well.
 
 ```rust
-{{#include _index_code/src/default_plugins.rs}}
+{{#include _index_code/examples/default_plugins.rs}}
 ```
 
 By chaining methods together on the [`AppBuilder`](internals/app-builder.md) that we created with `App::build`, we can carefully build up our game's functionality in a modular fashion with the [Builder pattern](https://refactoring.guru/design-patterns/builder).
@@ -35,7 +35,7 @@ By chaining methods together on the [`AppBuilder`](internals/app-builder.md) tha
 To give you a taste of the syntax for Bevy's ECS, here's a not-quite-minimal Hello World example: 
 
 ```rust
-{{#include _index_code/src/hello_world.rs}}
+{{#include _index_code/examples/hello_world.rs}}
 ```
 
 If you want to dive right into more realistic code-bases, check out the extensive [examples](https://github.com/bevyengine/bevy/tree/master/examples) section of the official repo, or the examples and tutorials found at [awesome-bevy](https://github.com/bevyengine/awesome-bevy#games).

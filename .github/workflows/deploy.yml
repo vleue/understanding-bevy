@@ -23,7 +23,7 @@ jobs:
           override: true
 
       - name: Check code examples
-        run: cargo check
+        run: cargo check --examples
 
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
