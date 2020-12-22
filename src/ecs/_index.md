@@ -37,4 +37,85 @@ fn main() {
 
 By chaining methods together on the [`AppBuilder`](internals/app-builder.md) that we create, we can carefully build up our game's functionality in a modular fashion with the [Builder pattern](https://refactoring.guru/design-patterns/builder). 
 
-To give you a taste of how all these things fit together, check out the extensive [examples](https://github.com/bevyengine/bevy/tree/master/examples) section of the official repo, or the examples and tutorials found at [awesome-bevy](https://github.com/bevyengine/awesome-bevy#games).
+To give you a taste of the syntax for Bevy's ECS, here's a not-quite-minimal Hello World example: 
+
+```rust
+use bevy::prelude::*;
+use std::collections::HashMap;
+use std::fmt;
+
+#[derive(Clone, Debug)]
+enum World{
+	Venus,
+	Earth,
+	Mars
+}
+
+struct Denizen;
+// We use the owned form String, rather than &str in this struct 
+// Because resources and components must be thread-safe with a 'static lifetime
+#[derive(Hash, PartialEq, Eq, Clone)]
+struct Name(String);
+
+// A custom impl of Display to ensure we can print these names nicely
+impl fmt::Display for Name{
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+
+}
+
+struct HelloTimer(Timer);
+
+fn main() {
+	App::build()
+	// We add the default plugins so our game will loop
+	// This also adds the Time resource that we use in `say_hello`
+	.add_plugins(DefaultPlugins)
+	.add_resource(HashMap::<Name, World>::new())
+	// Startup systems only run once, before normal systems take place
+	.add_startup_system(place_denizens.system())
+	// When systems cannot be run in parallel, priority is based on insertion order
+	.add_startup_system(spawn_denizens.system())
+	.add_resource(HelloTimer(Timer::from_seconds(2.0, true)))
+	// This system will run every frame, but only act when the timer is complete
+	.add_system(say_hello.system())
+	.run();
+}
+
+// Because we're modifying `directory`, we need the mutable version of it with `ResMut`
+fn place_denizens(mut directory: ResMut<HashMap::<Name, World>>){
+	directory.insert(Name("Alice".into()), World::Venus);
+	directory.insert(Name("Bevy".into()), World::Earth);
+	directory.insert(Name("Cart".into()), World::Mars);
+}
+
+// Commands queues up actions that should be performed to modify the World
+// We only need to read from directory, so we can call it with `Res` instead
+fn spawn_denizens(commands: &mut Commands, directory: Res<HashMap::<Name, World>>){
+
+	// We need to use .clone and .into_iter rather than .iter here 
+	// to satisfy the lifetime requirements of .spawn()
+	for (name, world) in directory.clone().into_iter(){
+		// .spawn creates new entities with the specified components
+		// Denizen is a "marker component" here, to allow us to filter for denizens in our queries
+		commands.spawn((name, world, Denizen));
+	}
+}
+
+// Queries extract the each entity that have all of the components specified in the first type argument
+// The second type argument is a query filter, which restricts which entities are actually provided 
+fn say_hello(query: Query<(&Name, &World), With<Denizen>>, mut timer: ResMut<HelloTimer>, time: Res<Time>){
+	
+	// Only run this system when the timer has elapsed
+	if timer.0.tick(time.delta_seconds()).just_finished(){
+		// Iterating over and then unpacking the query gives us access to the components for each of its entities
+		for (name, world) in query.iter(){
+			// Because we're querying for &Query and &World, we need to dereference them before we work with them
+			println!("Hello {:?}, my name is {}!", *world, *name);
+		}
+	}
+}
+```
+
+If you want to dive right into more realistic code-bases, check out the extensive [examples](https://github.com/bevyengine/bevy/tree/master/examples) section of the official repo, or the examples and tutorials found at [awesome-bevy](https://github.com/bevyengine/awesome-bevy#games).
